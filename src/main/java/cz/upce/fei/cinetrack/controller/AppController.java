@@ -18,8 +18,24 @@ public class AppController {
         this.repo = repo;
     }
 
+    @PostMapping("/auth/login")
+    public ResponseEntity<User> login(@RequestBody Map<String, String> request) {
+        return repo.authenticate(request.get("login"), request.get("password"))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(401).build());
+    }
+
+    @PostMapping("/auth/register")
+    public ResponseEntity<User> register(@RequestBody User user) {
+        return repo.registerUser(user)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.badRequest().build());
+    }
+
     @GetMapping("/movies")
-    public List<Movie> getMovies() { return repo.findAllMovies(); }
+    public List<Movie> getMovies(@RequestParam(value = "query", required = false) String query) {
+        return repo.searchMovies(query);
+    }
 
     @GetMapping("/movies/{id}")
     public ResponseEntity<Movie> getMovieById(@PathVariable Long id) {
@@ -70,7 +86,43 @@ public class AppController {
     }
 
     @GetMapping("/users")
-    public List<User> getUsers() {
-        return repo.findAllUsers();
+    public List<User> getUsers(@RequestParam(value = "query", required = false) String query) {
+        return repo.searchUsers(query);
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<User> addUser(@RequestBody User user) {
+        return ResponseEntity.ok(repo.addUser(user));
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+        return repo.updateUser(id, user)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        return repo.deleteUser(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/community/friends/{userId}")
+    public List<User> getFriends(@PathVariable Long userId) {
+        return repo.findFriends(userId);
+    }
+
+    @GetMapping("/community/messages")
+    public List<ChatMessage> getCommunityMessages(@RequestParam Long userId, @RequestParam Long friendId) {
+        return repo.findCommunityMessages(userId, friendId);
+    }
+
+    @PostMapping("/community/messages")
+    public ResponseEntity<ChatMessage> addCommunityMessage(@RequestBody ChatMessage message) {
+        return repo.addCommunityMessage(message)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.badRequest().build());
     }
 }
