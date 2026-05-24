@@ -33,8 +33,17 @@ public class AppController {
     }
 
     @GetMapping("/movies")
-    public List<Movie> getMovies(@RequestParam(value = "query", required = false) String query) {
-        return repo.searchMovies(query);
+    public List<Movie> getMovies(
+            @RequestParam(value = "query", required = false) String query,
+            @RequestParam(value = "genre", required = false) String genre,
+            @RequestParam(value = "sort", required = false) String sort
+    ) {
+        return repo.searchMovies(query, genre, sort);
+    }
+
+    @GetMapping("/movies/genres")
+    public List<String> getMovieGenres() {
+        return repo.findAllGenres();
     }
 
     @GetMapping("/movies/{id}")
